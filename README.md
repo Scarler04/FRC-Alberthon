@@ -1,2 +1,2 @@
 # FRC-Alberthon
-GenAI for the Franch Red Cross
+GenAI for the French Red Cross
