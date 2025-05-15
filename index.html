@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Markdown styling */
+        .markdown-content h1 {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 1em 0;
+        }
+        .markdown-content h2 {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 0.8em 0;
+        }
+        .markdown-content p {
+            margin: 0.5em 0;
+        }
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+        }
+        .markdown-content code {
+            background-color: #f3f4f6;
+            padding: 0.2em 0.4em;
+            border-radius: 0.25em;
+            font-family: monospace;
+        }
+        .markdown-content pre {
+            background-color: #f3f4f6;
+            padding: 1em;
+            border-radius: 0.5em;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 1em;
+            margin: 1em 0;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-64 bg-indigo-800 text-white flex flex-col h-full">
+        <div class="p-4 border-b border-indigo-700">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fas fa-robot mr-2"></i>
+                AI Assistant
+            </h1>
+        </div>
+        
+        <div class="p-4">
+            <h2 class="text-sm uppercase tracking-wider text-indigo-300 mb-2">Documentation et Outils</h2>
+            <ul class="space-y-2">
+                <li>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf1')">
+                        <i class="fas fa-book-open mr-3"></i>
+                        Guide d'entretien AEO
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf2')">
+                        <i class="fas fa-code mr-3"></i>
+                        Référentiel d'activité Permanence AEO - V1
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf3')">
+                        <i class="fas fa-graduation-cap mr-3"></i>
+                        Guide Accès aux droits et aux services
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf4')">
+                        <i class="fas fa-question-circle mr-3"></i>
+                        Qui sommes-nous ?
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="OpenTraduction()">
+                        <i class="fas fa-question-circle mr-3"></i>
+                        Traduction
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="mt-auto p-4 border-t border-indigo-700">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">User Account</p>
+                    <p class="text-xs text-indigo-300">Free Plan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+        <div id="pdf-viewer" class="hidden h-full w-full bg-white">
+            <div class="border-b p-4 flex justify-between items-center">
+                <h2 id="pdf-title" class="text-lg font-semibold">PDF Viewer</h2>
+                <button onclick="hidePdf()" class="p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="h-full">
+                <!-- Replace "your-file.pdf" with your actual PDF filename -->
+                <iframe src="fichier_pdf1.pdf" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+
+
+        <div id="traduction-section" class="hidden h-full w-full bg-white">
+            <div class="border-b p-4 flex justify-between items-center">
+                <h2 id="pdf-title" class="text-lg font-semibold">Traduction</h2>
+                <button onclick="hideTrad()" class="p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="h-full">
+                <h1>Traduction</h1>
+                <p>Voici le contenu de la page de traduction.</p>
+            </div>
+        </div>
+
+
+        <!-- Chat Interface (visible by default) -->
+        <div id="chat-interface" class="flex-1 flex flex-col h-full">
+            <!-- Chat Header -->
+            <div class="border-b p-4 bg-white">
+                <div class="flex items-center">
+                    <button id="sidebar-toggle" class="md:hidden mr-4 p-2 rounded-full hover:bg-gray-100">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-lg font-semibold">AI Chat Assistant</h2>
+                </div>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Welcome message -->
+                <div class="flex">
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm max-w-3xl">
+                        <div class="markdown-content">
+                            <h1>Welcome to AI Assistant!</h1>
+                            <p>I'm here to help you with any questions you might have. You can ask me about:</p>
+                            <ul>
+                                <li>General knowledge questions</li>
+                                <li>Technical documentation</li>
+                                <li>Code examples</li>
+                                <li>And much more!</li>
+                            </ul>
+                            <p>Try asking me something like: <code>"How do I use the API?"</code> or <code>"Show me an example of Python code"</code></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="border-t p-4 bg-white">
+                <form id="chat-form" class="flex space-x-2">
+                    <div class="flex-1 relative">
+                        <input 
+                            id="chat-input" 
+                            type="text" 
+                            placeholder="Type your message here..." 
+                            class="w-full p-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            autocomplete="off"
+                        >
+                        <button type="button" class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-indigo-600">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    </div>
+
+                    <button 
+                        type="button" 
+                        class="p-3 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+                        onclick="handleAudioButton()"
+                    >
+                        <i class="fas fa-headphones"></i>  <!-- Icône casque -->
+                        <!-- Alternative: <i class="fas fa-music"></i> pour des notes de musique -->
+                        <!-- Alternative: <i class="fas fa-volume-up"></i> pour barres de son -->
+                    </button>
+
+                    <button 
+                        type="submit" 
+                        class="p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+                    >
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <p class="text-xs text-gray-500 mt-2">AI Assistant may produce inaccurate information. Verify important details.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle mobile sidebar
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            document.querySelector('.w-64').classList.toggle('hidden');
+            document.querySelector('.w-64').classList.toggle('absolute');
+            document.querySelector('.w-64').classList.toggle('z-10');
+        });
+
+        // PDF viewer functions
+        function showPdf(pdfType) {
+            const titles = {
+                'pdf1': 'PDF1',
+                'pdf2': 'PDF2',
+                'pdf3': 'PDF3',
+                'pdf4': 'PDF4'
+            };
+            
+            const pdfFiles = {
+                'pdf1': 'fichier_pdf1.pdf',
+                'pdf2': 'fichier_pdf2.pdf',
+                'pdf3': 'fichier_pdf3.pdf',
+                'pdf4': 'fichier_pdf4.pdf'
+            };
+            
+            document.getElementById('pdf-title').textContent = titles[pdfType];
+            document.getElementById('pdf-viewer').classList.remove('hidden');
+            document.getElementById('chat-interface').classList.add('hidden');
+            document.getElementById('traduction-section').classList.add('hidden');
+
+            const iframe = document.querySelector('#pdf-viewer iframe');
+            iframe.src = `/pdf/${pdfFiles[pdfType]}`; 
+        }
+
+        function hidePdf() {
+            document.getElementById('pdf-viewer').classList.add('hidden');
+            document.getElementById('traduction-section').classList.add('hidden');
+            document.getElementById('chat-interface').classList.remove('hidden');
+        }
+
+        // Handle audio button click
+
+        // Traduction
+        function OpenTraduction() {
+            // Hide the PDF viewer and chat interface
+            document.getElementById('pdf-viewer').classList.add('hidden');
+            document.getElementById('chat-interface').classList.add('hidden');
+
+            // Show the Traduction section
+            const traductionSection = document.getElementById('traduction-section');
+            traductionSection.classList.remove('hidden');
+
+            // Set HTML content (you can add any HTML here)
+            traductionSection.innerHTML = `
+                <h2>Traduction (à voir)</h2>
+                <p>Ceci est le contenu de la page de traduction pour la langue : <strong>${Langue}</strong>.</p>
+                <p>Vous pouvez ajouter ici des boutons, des champs de texte, ou n’importe quel contenu HTML.</p>
+            `;
+        }
+
+        function Traduction (lang_in, lang_out) {
+            // This function will handle the translation logic
+            // You can use an API or any other method to perform the translation
+            // For now, we will just log the languages to the console
+            console.log(`Translating from ${lang_in} to ${lang_out}`);
+        }
+
+        function hideTrad() {
+            document.getElementById('pdf-viewer').classList.add('hidden');
+            document.getElementById('traduction-section').classList.add('hidden');
+            document.getElementById('chat-interface').classList.remove('hidden');
+        }
+
+
+        // Chat functionality
+        document.getElementById('chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add user message
+                addMessage(message, 'user');
+                input.value = '';
+                
+                // Simulate AI response (in a real app, this would come from your Python backend)
+                setTimeout(() => {
+                    const response = generateMockResponse(message);
+                    addMessage(response, 'ai');
+                }, 1000);
+            }
+        });
+
+        function addMessage(content, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex';
+            
+            if (sender === 'user') {
+                messageDiv.className += ' justify-end';
+                messageDiv.innerHTML = `
+                    <div class="bg-indigo-100 p-4 rounded-lg shadow-sm max-w-3xl">
+                        <p>${content}</p>
+                    </div>
+                    <div class="flex-shrink-0 ml-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-600"></i>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.className += ' justify-start';
+                messageDiv.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm max-w-3xl">
+                        <div class="markdown-content">${content}</div>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Mock response generator (replace with actual API call to your Python backend)
+        function generateMockResponse(query) {
+            const responses = [
+                `I understand you're asking about "${query}". Here's what I can tell you:\n\n- This is a mock response\n- In a real implementation, this would come from your Python backend\n- The response supports **markdown** formatting`,
+                `Regarding "${query}", here's an example code snippet:\n\n\`\`\`python\ndef example_function():\n    print("Hello World!")\n\`\`\``,
+                `# Analysis of "${query}"\n\nBased on my knowledge:\n\n1. First point\n2. Second point\n3. Third point\n\nWould you like me to elaborate on any of these?`,
+                `I found this information about "${query}":\n\n> This is a blockquote example showing how markdown can be formatted in the response.\n\nYou can also include:\n- Lists\n- **Bold text**\n- *Italic text*\n- \`code snippets\``
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+    </script>
+</body>
+</html>
