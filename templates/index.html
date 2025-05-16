@@ -130,7 +130,7 @@
             </div>
             <div class="h-full">
                 <!-- Replace "your-file.pdf" with your actual PDF filename -->
-                <iframe src="fichier_pdf1.pdf" class="w-full h-full" frameborder="0"></iframe>
+                <iframe src="pdf/fichier_pdf1.pdf" class="w-full h-full" frameborder="0"></iframe>
             </div>
         </div>
 
@@ -195,7 +195,7 @@
                         style="resize: none;"
                     ></textarea>
                     <div class="flex justify-end mt-2">
-                        <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
+                        <button id = "listen-source-btn" onclick = "read('source')" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
                             <i class="fas fa-volume-up mr-1"></i> Listen
                         </button>
                     </div>
@@ -211,10 +211,7 @@
                         readonly
                     ></textarea>
                     <div class="flex justify-end mt-2 space-x-2">
-                        <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
-                            <i class="fas fa-copy mr-1"></i> Copy
-                        </button>
-                        <button class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
+                        <button id ="listen-target-btn" onclick="read('target')" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
                             <i class="fas fa-volume-up mr-1"></i> Listen
                         </button>
                     </div>
@@ -420,6 +417,71 @@
                 translateBtn.innerHTML = '<i class="fas fa-exchange-alt mr-2"></i> Translate';
             }
         }
+
+        async function read(source) {
+        const text = source === 'source' 
+            ? document.getElementById('source-text').value.trim()
+            : document.getElementById('target-text').value.trim();
+        
+        const language = source === 'source'
+            ? document.getElementById('source-language').value
+            : document.getElementById('target-language').value;
+        
+        // Map your language codes to cloud provider codes
+        const languageMap = {
+            'AR': 'ar-XA', 'FR': 'fr-FR', 'EN': 'en-US', 
+            'FA': 'fa-IR', 'RU': 'ru-RU', 'ES': 'es-ES',
+            'DE': 'de-DE', 'UK': 'uk-UA' // Add others as needed
+        };
+        
+        
+        const languageCode = languageMap[language] || 'en-US';
+        
+        if (!text) {
+            alert('Please enter some text');
+            return;
+        }
+        
+        const buttonId = source === 'source' 
+            ? 'listen-source-btn' 
+            : 'listen-target-btn';
+        const button = document.getElementById(buttonId);
+        
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+        
+        try {
+            const response = await fetch('/generate-speech', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text: text,
+                    language_code: languageCode 
+                })
+            });
+            
+            // if (!response.ok) throw new Error('Failed to generate speech');
+            if (!response.ok) {
+                // Try to parse the JSON error returned by Flask
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate speech');
+            }
+            
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioPlayer = new Audio(audioUrl);
+            audioPlayer.play();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error generating speech: ' + error.message);
+        } finally {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-volume-up mr-1"></i> Listen';
+        }
+    }
+
+
 
         function hideTrad() {
             document.getElementById('pdf-viewer').classList.add('hidden');
