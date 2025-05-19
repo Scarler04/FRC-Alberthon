@@ -2,6 +2,7 @@ from flask import Flask, render_template, send_from_directory, request, jsonify,
 import io
 import os
 from pathlib import Path
+import json
 from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
 import openai
@@ -13,14 +14,14 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\ymeur\Documents\gen-lang-client-0046331386-3eda56703759.json"
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\remip\Clé\stately-diagram-460009-k6-e85f360cb898.json"
 UPLOAD_FOLDER = r'templates\audio-temp'
 ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-def get_places_top10(age:int,language:string,areacode:str):
+def get_places_top10(age:int,language:str,areacode:str):
     """
     inputs : 
         age : int
@@ -40,7 +41,7 @@ def get_places_top10(age:int,language:string,areacode:str):
 
         if agemax >= age and language in languages and areacode_place == areacode:
             accepted_places.append(place)
-    return accepted_places[:10]
+    return accepted_places[0]
 
         
 
@@ -67,36 +68,68 @@ def ask_question_with_audio(audio_path, dev_note=""):
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": f"""
+                {"role": "system", "content": """
         DEV NOTE: En te basant sur la transcription de la discussion :
 
-        Pour chaque catégorie, liste toutes les valeurs possibles parmi les choix suivants, ou indique "non précisé" si aucune information :
+        Pour chaque catégorie, donne la valeur correspondante, le tout sous form de json:
 
-        1. Genre : femmes et hommes / femmes / hommes
-        2. Âge : enfants / adultes / seniors
-        3. Publics spécifiques : addiction / handicap / VIH / LGBT+ / sortants de prison / prostitution / étudiants / déplacés d'Ukraine / victimes de violence
-        4. Langues : liste des langues mentionnées
-        5. Situation administrative : tous / demandeurs d'asile / réfugiés / en situation régulière / sans-papiers
-        6. Situation familiale : tous / couples / familles / isolés / femmes enceintes
-        7. Accessibilité mobilité réduite : oui / non
-        8. Animaux acceptés : oui / non
+        1. Âge : Precis si donné, sinon, donne une approximation basée sur le contexte de la discussion. Si aucune information ne permet de scerner, dire 35.
+        2. Langues : la langue parlée par la personne qui demande de l'aide pas la personne de la croix rouge et encodée (fr, ar, en, etc...). Sinon, français (fr) par défaut.
+        3. Areacode : le code postal de la personne qui demande de l'aide 78000 par défaut.
 
         Format de réponse (exemple) :
-        Genre : femmes, hommes
-        Âge : adultes
-        Publics spécifiques : étudiants, LGBT+
-        Langues : français, anglais
-        ...
+        {"age" : 35,
+        "langue" : "en",
+        "areacode" : 75000}
 
-        Répond uniquement sous forme de liste compacte, sans phrases supplémentaires.
+        Répond uniquement sous forme de json compacte, sans phrases supplémentaires.
         """},
                 {"role": "user", "content": transcription}
             ]
         )
+
+        # 3. Get Suggestions
+        json_string = response.choices[0].message.content
+        # Convert string to JSON
+        json_object = json.loads(json_string)
+
+        # Extract age, language, and area code
+        input_age = int(json_object.get('age', None))
+        input_language = str(json_object.get('langue', None))
+        input_areacode = str(json_object.get('areacode', None))
+
+        get_places_top10_response = get_places_top10(input_age, input_language, input_areacode)
+        output_top10 = json.dumps(get_places_top10_response, ensure_ascii=False)
+        # Convert the response to JSON
+
+        response_final = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": """
+                DEV NOTE: En te basant sur la transcription et les propositions de lieux formattent une réponse en markdown en classant chaque lieux par intérêt et en précisant uniquement les détails utiles.
+                Formatage des réponses attendu :
+                # Titres
+                ## Sous-titres
+                **Texte important** en gras  
+                *Texte secondaire* en italique
+
+                Listes :
+                - Élément 1
+                - Élément 2
+                - Sous-élément
+
+                Blocs de code :
+                ```python
+                print("Exemple pour les procédures")
+                """},
+                {"role": "user", "content": str(transcription+output_top10)}
+            ]
+        )
+
         
         return {
             "question": transcription,  # We won't use this but keeping it for debugging
-            "answer": response.choices[0].message.content
+            "answer": (response_final.choices[0].message.content)
         }
 
     except Exception as e:
@@ -326,3 +359,31 @@ def handle_question():
 if __name__ == '__main__':
     # app.run(debug=True)
     app.run(host='127.0.0.1', port=5000, debug=True)
+
+
+# ======================Other===========================
+
+# DEV note for soliguide full api (excluding type of aid searched)
+#f"""
+# DEV NOTE: En te basant sur la transcription de la discussion :
+
+# Pour chaque catégorie, liste toutes les valeurs possibles parmi les choix suivants, ou indique "non précisé" si aucune information :
+
+# 1. Genre : femmes et hommes / femmes / hommes
+# 2. Âge : enfants / adultes / seniors
+# 3. Publics spécifiques : addiction / handicap / VIH / LGBT+ / sortants de prison / prostitution / étudiants / déplacés d'Ukraine / victimes de violence
+# 4. Langues : liste des langues mentionnées
+# 5. Situation administrative : tous / demandeurs d'asile / réfugiés / en situation régulière / sans-papiers
+# 6. Situation familiale : tous / couples / familles / isolés / femmes enceintes
+# 7. Accessibilité mobilité réduite : oui / non
+# 8. Animaux acceptés : oui / non
+
+# Format de réponse (exemple) :
+# Genre : femmes, hommes
+# Âge : adultes
+# Publics spécifiques : étudiants, LGBT+
+# Langues : français, anglais
+# ...
+
+# Répond uniquement sous forme de liste compacte, sans phrases supplémentaires.
+# """
