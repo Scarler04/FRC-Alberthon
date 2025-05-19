@@ -14,10 +14,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\ymeur\Documents\gen-lang-client-0046331386-3eda56703759.json"
-#UPLOAD_FOLDER = r'templates'
+UPLOAD_FOLDER = r'templates\audio-temp'
 ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 
-# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def ask_question_with_audio(audio_path, dev_note=""):
     """Transcribe audio and get answer from OpenAI"""
@@ -80,8 +80,7 @@ def ask_question_with_audio(audio_path, dev_note=""):
 def ask_question(user_prompt):
     try:
         # Load your API key
-        with open(r'C:\Users\remip\Clé\openai_albertschool.txt', 'r') as f:
-            api_key = f.read().strip()
+        api_key = os.getenv('OPENAI_API_KEY')
         
         client = openai.OpenAI(api_key=api_key)
 

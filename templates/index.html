@@ -603,16 +603,7 @@
         }
 
         // Mock response generator (replace with actual API call to your Python backend)
-        function generateMockResponse(query) {
-            const responses = [
-                `I understand you're asking about "${query}". Here's what I can tell you:\n\n- This is a mock response\n- In a real implementation, this would come from your Python backend\n- The response supports **markdown** formatting`,
-                `Regarding "${query}", here's an example code snippet:\n\n\`\`\`python\ndef example_function():\n    print("Hello World!")\n\`\`\``,
-                `# Analysis of "${query}"\n\nBased on my knowledge:\n\n1. First point\n2. Second point\n3. Third point\n\nWould you like me to elaborate on any of these?`,
-                `I found this information about "${query}":\n\n> This is a blockquote example showing how markdown can be formatted in the response.\n\nYou can also include:\n- Lists\n- **Bold text**\n- *Italic text*\n- \`code snippets\``
-            ];
-            
-            return responses[Math.floor(Math.random() * responses.length)];
-        }
+        
 
         // Audio recording functionality
         let mediaRecorder;
