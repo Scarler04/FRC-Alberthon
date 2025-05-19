@@ -19,6 +19,33 @@ ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
+def get_places_top10(age:int,language:string,areacode:str):
+    """
+    inputs : 
+        age : int
+        language : string. (possible values : fr, ar, en, etc...)
+        areacode : string
+
+    Example : get_places_top10(45,"fr","78000")
+    
+    """
+    with open("static\data-solinum\soliguide_response.json", "r") as f:
+      document = json.load(f)
+      accepted_places = []
+      for place in document["places"]:
+        agemax = place["publics"]["age"]["max"]
+        languages = place["languages"]
+        areacode_place = place.get('position', {}).get('codePostal', "non disponible")
+
+        if agemax >= age and language in languages and areacode_place == areacode:
+            accepted_places.append(place)
+    return accepted_places[:10]
+
+        
+
+
+
 def ask_question_with_audio(audio_path, dev_note=""):
     """Transcribe audio and get answer from OpenAI"""
     try:

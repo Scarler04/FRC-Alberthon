@@ -3,7 +3,6 @@ import json
 
 """
 ERATUM : This code is made to scrape de data of the soliguide api :)
-
 """
 
 url = 'https://api.soliguide.fr/new-search/fr'
