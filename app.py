@@ -5,24 +5,25 @@ from pathlib import Path
 from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
 import openai
+from dotenv import load_dotenv
 
-
+# Load the env vars in the .env file
+load_dotenv()
 
 
 app = Flask(__name__)
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\remip\Clé\stately-diagram-460009-k6-e85f360cb898.json"
-UPLOAD_FOLDER = r'C:\Users\remip\Python\2024-2025\Alberthons\French Red Cross\test2\templates'
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\ymeur\Documents\gen-lang-client-0046331386-3eda56703759.json"
+#UPLOAD_FOLDER = r'templates'
 ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def ask_question_with_audio(audio_path, dev_note=""):
     """Transcribe audio and get answer from OpenAI"""
     try:
         # Load your API key
-        with open(r'C:\Users\remip\Clé\openai_albertschool.txt', 'r') as f:
-            api_key = f.read().strip()
+        api_key = os.getenv('OPENAI_API_KEY')
         
         client = openai.OpenAI(api_key=api_key)
         
