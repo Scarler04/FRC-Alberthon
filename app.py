@@ -5,16 +5,23 @@ import os
 from datetime import datetime
 from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
+from werkzeug.utils import secure_filename
+
 
 
 
 app = Flask(__name__)
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\remip\Clé\stately-diagram-460009-k6-e85f360cb898.json"
+UPLOAD_FOLDER = r'C:\Users\remip\Python\2024-2025\Alberthons\French Red Cross\test2\templates'
+ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Your HTML file
+    return render_template('index.html')
 
 @app.route('/pdf/<filename>')
 def serve_pdf(filename):
@@ -109,7 +116,40 @@ def handle_speech_request():
 
 
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/save-recording', methods=['POST'])
+def save_recording():
+    if 'audio' not in request.files:
+        return jsonify({'status': 'error', 'message': 'No audio file provided'}), 400
+    
+    audio_file = request.files['audio']
+    
+    if audio_file.filename == '':
+        return jsonify({'status': 'error', 'message': 'No selected file'}), 400
+    
+    if audio_file and allowed_file(audio_file.filename):
+        # Define the filename you want to save as
+        filename = 'temp_discussion.webm'
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Ensure directory exists
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        
+        # Save the file (this will overwrite existing file)
+        audio_file.save(save_path)
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'File saved successfully',
+            'path': save_path
+        })
+    
+    return jsonify({'status': 'error', 'message': 'Invalid file type'}), 400
+
 if __name__ == '__main__':
     # app.run(debug=True)
-    # app.run(host='192.168.27.119', port=5000, debug=True)
-    app.run(host='172.16.29.223', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
+    # app.run(host='172.16.29.223', port=5000, debug=True)

@@ -67,41 +67,41 @@
         <div class="p-4 border-b border-indigo-700">
             <h1 class="text-xl font-bold flex items-center">
                 <i class="fas fa-robot mr-2"></i>
-                AI Assistant
+                Solichat
             </h1>
         </div>
         
         <div class="p-4">
-            <h2 class="text-sm uppercase tracking-wider text-indigo-300 mb-2">Documentation et Outils</h2>
+            <h2 class="text-sm uppercase tracking-wider text-indigo-300 mb-2">Tools and Documentation</h2>
             <ul class="space-y-2">
                 <li>
                     <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf1')">
                         <i class="fas fa-book-open mr-3"></i>
-                        Guide d'entretien AEO
+                        AEO Interview Guide
                     </a>
                 </li>
                 <li>
                     <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf2')">
                         <i class="fas fa-code mr-3"></i>
-                        Référentiel d'activité Permanence AEO - V1
+                        AEO Walk-in Activity Reference Guide – V1
                     </a>
                 </li>
                 <li>
                     <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf3')">
                         <i class="fas fa-graduation-cap mr-3"></i>
-                        Guide Accès aux droits et aux services
+                        Guide to Accessing Rights and Services
                     </a>
                 </li>
                 <li>
                     <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="showPdf('pdf4')">
                         <i class="fas fa-question-circle mr-3"></i>
-                        Qui sommes-nous ?
+                        Who are we ?
                     </a>
                 </li>
                 <li>
                     <a href="#" class="flex items-center p-2 rounded hover:bg-indigo-700 transition" onclick="OpenTraduction()">
                         <i class="fas fa-question-circle mr-3"></i>
-                        Traduction
+                        Translation
                     </a>
                 </li>
             </ul>
@@ -113,8 +113,8 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm font-medium">User Account</p>
-                    <p class="text-xs text-indigo-300">Free Plan</p>
+                    <p class="text-sm font-medium">John Doe</p>
+                    <p class="text-xs text-indigo-300">Admin</p>
                 </div>
             </div>
         </div>
@@ -140,9 +140,9 @@
             <div class="border-b p-4 flex justify-between items-center">
                 <h2 class="text-lg font-semibold flex items-center">
                     <i class="fas fa-language mr-2 text-indigo-600"></i>
-                    Outil de Traduction
+                    Translation Tool
                 </h2>
-                <p class="text-gray-600">Powered by DeepL API</p>
+                <p class="text-gray-600">Powered by Google Cloud API</p>
                 <button onclick="hideTrad()" class="p-2 rounded-full hover:bg-gray-100">
                     <i class="fas fa-times"></i>
                 </button>
@@ -155,10 +155,6 @@
                     <option value="FR">French (Français)</option>
                     <option value="EN">English</option>
                     <option value="FA">Farsi (فارسی)</option>
-                    <option value="PS">Pashto (پښتو)</option>
-                    <option value="UR">Urdu (اردو)</option>
-                    <option value="SO">Somali (Soomaali)</option>
-                    <option value="TI">Tigrinya (ትግርኛ)</option>
                     <option value="RU">Russian (Русский)</option>
                     <option value="UK">Ukrainian (Українська)</option>
                     <option value="ES">Spanish (Español)</option>
@@ -174,10 +170,7 @@
                     <option value="EN">English</option>
                     <option value="AR">Arabic (العربية)</option>
                     <option value="FA">Farsi (فارسی)</option>
-                    <option value="PS">Pashto (پښتو)</option>
-                    <option value="UR">Urdu (اردو)</option>
-                    <option value="SO">Somali (Soomaali)</option>
-                    <option value="TI">Tigrinya (ትግርኛ)</option>
+                    <option value="ES">Spanish (Español)</option>
                     <option value="RU">Russian (Русский)</option>
                     <option value="UK">Ukrainian (Українська)</option>
                     <option value="DE">German (Deutsch)</option>
@@ -189,16 +182,29 @@
                 <!-- Source Text -->
                 <div class="p-4 border-r">
                     <textarea 
-                        id = "source-text"
+                        id="source-text"
                         class="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                        placeholder="Type text here..."
+                        placeholder="Type text here or use speech recognition..."
                         style="resize: none;"
                     ></textarea>
-                    <div class="flex justify-end mt-2">
-                        <button id = "listen-source-btn" onclick = "read('source')" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
+                    <div class="flex justify-between mt-2">
+                        <div class="flex space-x-2">
+                            <button id="startButton" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                <i class="fas fa-microphone mr-2"></i> Start Listening
+                            </button>
+                            <button id="stopButton" disabled class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                <i class="fas fa-stop mr-2"></i> Stop
+                            </button>
+                            <button id="clearButton" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                                <i class="fas fa-trash mr-2"></i> Clear
+                            </button>
+                        </div>
+                        <button id="listen-source-btn" onclick="read('source')" class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
                             <i class="fas fa-volume-up mr-1"></i> Listen
                         </button>
                     </div>
+                    <div id="status" class="text-s text-gray-500 mt-1">Click "Start Listening" to begin speech recognition</div>
+                    <div id="error" class="text-xs text-red-500 mt-1"></div>
                 </div>
                 
                 <!-- Target Text -->
@@ -250,15 +256,17 @@
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm max-w-3xl">
                         <div class="markdown-content">
-                            <h1>Welcome to AI Assistant!</h1>
-                            <p>I'm here to help you with any questions you might have. You can ask me about:</p>
-                            <ul>
-                                <li>General knowledge questions</li>
-                                <li>Technical documentation</li>
-                                <li>Code examples</li>
-                                <li>And much more!</li>
+                            <h1>Welcome to Solichat!</h1>
+                            <p>I'm here to support you during your AEO interviews. I can help you with the following:</p>
+                            <ul style="list-style-type: disc; padding-left: 20px;">
+                                <li>Answer your questions in real time during the interview</li>
+                                <li>Suggest helpful resources after the conversation</li>
+                                <li>Translate when needed</li>
                             </ul>
-                            <p>Try asking me something like: <code>"How do I use the API?"</code> or <code>"Show me an example of Python code"</code></p>
+                            <p>To begin the interview, click the <code>Start Recording</code> button at the bottom left of the main page.</p>
+                            <p>If you have a question, simply type it into the text box provided.</p>
+                            <p>To access translations, head to the <code>Translation</code> page.</p>
+                            <p>Relevant documents are also available for you if needed.</p>
                         </div>
                     </div>
                 </div>
@@ -280,14 +288,8 @@
                         </button>
                     </div>
 
-                    <button 
-                        type="button" 
-                        class="p-3 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
-                        onclick="handleAudioButton()"
-                    >
-                        <i class="fas fa-headphones"></i>  <!-- Icône casque -->
-                        <!-- Alternative: <i class="fas fa-music"></i> pour des notes de musique -->
-                        <!-- Alternative: <i class="fas fa-volume-up"></i> pour barres de son -->
+                    <button type="button" id="record-button" class="p-3 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition" title="Record audio (will download as temp_discussion.mp3)">
+                        <i class="fas fa-microphone"></i>
                     </button>
 
                     <button 
@@ -313,10 +315,10 @@
         // PDF viewer functions
         function showPdf(pdfType) {
             const titles = {
-                'pdf1': 'PDF1',
-                'pdf2': 'PDF2',
-                'pdf3': 'PDF3',
-                'pdf4': 'PDF4'
+                'pdf1': 'AEO Interview Guide',
+                'pdf2': 'AEO Walk-in Activity Reference Guide – V1',
+                'pdf3': 'Guide to Accessing Rights and Services',
+                'pdf4': 'Who are we ?'
             };
             
             const pdfFiles = {
@@ -419,67 +421,67 @@
         }
 
         async function read(source) {
-        const text = source === 'source' 
-            ? document.getElementById('source-text').value.trim()
-            : document.getElementById('target-text').value.trim();
-        
-        const language = source === 'source'
-            ? document.getElementById('source-language').value
-            : document.getElementById('target-language').value;
-        
-        // Map your language codes to cloud provider codes
-        const languageMap = {
-            'AR': 'ar-XA', 'FR': 'fr-FR', 'EN': 'en-US', 
-            'FA': 'fa-IR', 'RU': 'ru-RU', 'ES': 'es-ES',
-            'DE': 'de-DE', 'UK': 'uk-UA' // Add others as needed
-        };
-        
-        
-        const languageCode = languageMap[language] || 'en-US';
-        
-        if (!text) {
-            alert('Please enter some text');
-            return;
-        }
-        
-        const buttonId = source === 'source' 
-            ? 'listen-source-btn' 
-            : 'listen-target-btn';
-        const button = document.getElementById(buttonId);
-        
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
-        
-        try {
-            const response = await fetch('/generate-speech', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text: text,
-                    language_code: languageCode 
-                })
-            });
+            const text = source === 'source' 
+                ? document.getElementById('source-text').value.trim()
+                : document.getElementById('target-text').value.trim();
             
-            // if (!response.ok) throw new Error('Failed to generate speech');
-            if (!response.ok) {
-                // Try to parse the JSON error returned by Flask
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate speech');
+            const language = source === 'source'
+                ? document.getElementById('source-language').value
+                : document.getElementById('target-language').value;
+            
+            // Map your language codes to cloud provider codes
+            const languageMap = {
+                'AR': 'ar-XA', 'FR': 'fr-FR', 'EN': 'en-US', 
+                'FA': 'fa-IR', 'RU': 'ru-RU', 'ES': 'es-ES',
+                'DE': 'de-DE', 'UK': 'uk-UA' // Add others as needed
+            };
+            
+            
+            const languageCode = languageMap[language] || 'en-US';
+            
+            if (!text) {
+                alert('Please enter some text');
+                return;
             }
             
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audioPlayer = new Audio(audioUrl);
-            audioPlayer.play();
+            const buttonId = source === 'source' 
+                ? 'listen-source-btn' 
+                : 'listen-target-btn';
+            const button = document.getElementById(buttonId);
             
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error generating speech: ' + error.message);
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-volume-up mr-1"></i> Listen';
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            
+            try {
+                const response = await fetch('/generate-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: text,
+                        language_code: languageCode 
+                    })
+                });
+                
+                // if (!response.ok) throw new Error('Failed to generate speech');
+                if (!response.ok) {
+                    // Try to parse the JSON error returned by Flask
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate speech');
+                }
+                
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audioPlayer = new Audio(audioUrl);
+                audioPlayer.play();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating speech: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-volume-up mr-1"></i> Listen';
+            }
         }
-    }
 
 
 
@@ -566,6 +568,217 @@
             ];
             
             return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Audio recording functionality
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleRecording() {
+            const recordButton = document.getElementById('record-button');
+            
+            if (!isRecording) {
+                try {
+                    // Start recording
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Using webm for better browser support
+                        
+                        // Send to server
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob, 'temp_discussion.webm');
+                        
+                        try {
+                            const response = await fetch('/save-recording', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to save recording');
+                            
+                            const result = await response.json();
+                            if (result.status === 'success') {
+                                alert('Recording saved successfully!');
+                            } else {
+                                throw new Error(result.message || 'Failed to save recording');
+                            }
+                        } catch (error) {
+                            console.error('Error saving recording:', error);
+                            alert('Error saving recording: ' + error.message);
+                        }
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordButton.innerHTML = '<i class="fas fa-stop"></i>';
+                    recordButton.classList.remove('bg-indigo-800');
+                    recordButton.classList.add('bg-red-600');
+                } catch (error) {
+                    console.error('Recording error:', error);
+                    alert('Error accessing microphone: ' + error.message);
+                }
+            } else {
+                // Stop recording
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                recordButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                recordButton.classList.remove('bg-red-600');
+                recordButton.classList.add('bg-indigo-800');
+            }
+        }
+
+        // Add event listener to the record button
+        document.getElementById('record-button').addEventListener('click', toggleRecording);
+
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const clearButton = document.getElementById('clearButton');
+        const sourceText = document.getElementById('source-text');
+        const status = document.getElementById('status');
+        const errorDiv = document.getElementById('error');
+        const sourceLanguage = document.getElementById('source-language');
+
+        let recognition;
+        let finalTranscript = '';
+        let isListening = false;
+        let microphoneAccessGranted = false;
+
+        // Check if browser supports SpeechRecognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            errorDiv.textContent = "Speech recognition not supported in this browser. Try Chrome or Edge.";
+            startButton.disabled = true;
+        } else {
+            startButton.addEventListener('click', startListening);
+            stopButton.addEventListener('click', stopListening);
+            clearButton.addEventListener('click', clearText);
+        }
+
+        function startListening() {
+            // Reset the final transcript if we're starting fresh
+            if (!isListening) {
+                finalTranscript = sourceText.value;
+            }
+            
+            status.textContent = "Initializing...";
+            errorDiv.textContent = "";
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            isListening = true;
+            
+            // Initialize speech recognition with selected language
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            
+            // Map your language codes to speech recognition codes
+            const languageMap = {
+                'AR': 'ar-SA', 
+                'FR': 'fr-FR', 
+                'EN': 'en-US',
+                'ES': 'es-ES',
+                'DE': 'de-DE',
+                'RU': 'ru-RU',
+                'UK': 'uk-UA'
+            };
+            
+            recognition.lang = languageMap[sourceLanguage.value] || 'en-US';
+            
+            recognition.onstart = function() {
+                status.textContent = "Listening... Speak now.";
+            };
+            
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Display both final and interim results
+                sourceText.value = finalTranscript + interimTranscript;
+            };
+            
+            recognition.onerror = function(event) {
+                // Don't show errors if user manually stopped
+                if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                    errorDiv.textContent = "Error occurred in recognition: " + event.error;
+                }
+                
+                // If error wasn't from user stopping, try to restart
+                if (event.error !== 'aborted' && isListening) {
+                    setTimeout(() => {
+                        if (isListening) {
+                            recognition.start();
+                        }
+                    }, 500);
+                }
+            };
+            
+            recognition.onend = function() {
+                if (isListening) {
+                    // If ended unexpectedly, try to restart
+                    setTimeout(() => {
+                        if (isListening) {
+                            recognition.start();
+                        }
+                    }, 500);
+                }
+            };
+            
+            // Handle microphone permission
+            if (!microphoneAccessGranted) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(() => {
+                        microphoneAccessGranted = true;
+                        recognition.start();
+                    })
+                    .catch(err => {
+                        errorDiv.textContent = "Microphone access denied: " + err.message;
+                        resetButtons();
+                    });
+            } else {
+                recognition.start();
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+            if (recognition) {
+                recognition.stop();
+            }
+            status.textContent = "Stopped listening";
+            resetButtons();
+        }
+
+        function resetButtons() {
+            startButton.disabled = false;
+            stopButton.disabled = true;
+        }
+
+        function clearText() {
+            finalTranscript = '';
+            sourceText.value = '';
+            status.textContent = "Text cleared";
+            setTimeout(() => {
+                status.textContent = "Ready";
+            }, 2000);
         }
     </script>
 </body>
