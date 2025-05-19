@@ -44,9 +44,6 @@ def get_places_top10(age:int,language:str,areacode:str):
     return accepted_places[0]
 
         
-
-
-
 def ask_question_with_audio(audio_path, dev_note=""):
     """Transcribe audio and get answer from OpenAI"""
     try:
@@ -69,21 +66,21 @@ def ask_question_with_audio(audio_path, dev_note=""):
             model="gpt-4",
             messages=[
                 {"role": "system", "content": """
-        DEV NOTE: En te basant sur la transcription de la discussion :
+                DEV NOTE: En te basant sur la transcription de la discussion :
 
-        Pour chaque catégorie, donne la valeur correspondante, le tout sous form de json:
+                Pour chaque catégorie ci dessous, donne la valeur correspondante, le tout sous forme de json:
 
-        1. Âge : Precis si donné, sinon, donne une approximation basée sur le contexte de la discussion. Si aucune information ne permet de scerner, dire 35.
-        2. Langues : la langue parlée par la personne qui demande de l'aide pas la personne de la croix rouge et encodée (fr, ar, en, etc...). Sinon, français (fr) par défaut.
-        3. Areacode : le code postal de la personne qui demande de l'aide 78000 par défaut.
+                1. Âge : Precis si donné, sinon, donne une approximation basée sur le contexte de la discussion. Si aucune information ne permet de scerner, dire 35.
+                2. Langues : la langue parlée par la personne qui demande de l'aide pas la personne de la croix rouge et encodée (fr, ar, en, etc...). Sinon, français (fr) par défaut.
+                3. Areacode : le code postal de la personne qui demande de l'aide 78000 par défaut.
 
-        Format de réponse (exemple) :
-        {"age" : 35,
-        "langue" : "en",
-        "areacode" : 75000}
+                Format de réponse (exemple) :
+                {"age" : 35,
+                "langue" : "en",
+                "areacode" : 75000}
 
-        Répond uniquement sous forme de json compacte, sans phrases supplémentaires.
-        """},
+                Répond uniquement sous forme de json compacte, sans phrases supplémentaires.
+                """},
                 {"role": "user", "content": transcription}
             ]
         )
