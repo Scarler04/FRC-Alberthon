@@ -20,7 +20,7 @@ ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-def get_places_top10(age:int,language:string,areacode:str):
+def get_places_top10(age:int,language:str,areacode:str):
     """
     inputs : 
         age : int
