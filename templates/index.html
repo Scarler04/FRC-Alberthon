@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chatbot Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Custom scrollbar */
@@ -504,7 +505,7 @@
         }
 
         // Chat functionality
-        document.getElementById('chat-form').addEventListener('submit', function(e) {
+        document.getElementById('chat-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
@@ -514,13 +515,54 @@
                 addMessage(message, 'user');
                 input.value = '';
                 
-                // Simulate AI response (in a real app, this would come from your Python backend)
-                setTimeout(() => {
+                try {
+                    // Show loading state
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    const originalButtonContent = submitButton.innerHTML;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    submitButton.disabled = true;
+                    
+                    // Call the Flask backend
+                    const response = await fetch('/ask-question', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to get response');
+                    
+                    const data = await response.json();
+                    
+                    if (data.status !== 'success') {
+                        throw new Error(data.message || 'Failed to get answer');
+                    }
+                    
+                    // Add AI response
+                    addMessage(data.answer, 'ai');
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    // Fallback to mock response if API fails
                     const response = generateMockResponse(message);
                     addMessage(response, 'ai');
-                }, 1000);
+                    
+                } finally {
+                    // Restore button state
+                    const submitButton = document.querySelector('#chat-form button[type="submit"]');
+                    submitButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    submitButton.disabled = false;
+                }
             }
         });
+
+        // Keep the mock response generator as fallback
+        function generateMockResponse(query) {
+            return `I'm having trouble connecting to the AI service. Here's a mock response to your question about "${query}". Please try again later for a real response.`;
+        }
 
         function addMessage(content, sender) {
             const messagesContainer = document.getElementById('chat-messages');
@@ -529,6 +571,7 @@
             messageDiv.className = 'flex';
             
             if (sender === 'user') {
+                // Message de l'utilisateur (à droite)
                 messageDiv.className += ' justify-end';
                 messageDiv.innerHTML = `
                     <div class="bg-indigo-100 p-4 rounded-lg shadow-sm max-w-3xl">
@@ -541,6 +584,7 @@
                     </div>
                 `;
             } else {
+                // Message de l'IA (à gauche) avec support Markdown
                 messageDiv.className += ' justify-start';
                 messageDiv.innerHTML = `
                     <div class="flex-shrink-0 mr-3">
@@ -549,7 +593,7 @@
                         </div>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-sm max-w-3xl">
-                        <div class="markdown-content">${content}</div>
+                        <div class="markdown-content">${marked.parse(content)}</div>
                     </div>
                 `;
             }
@@ -591,29 +635,39 @@
                     };
                     
                     mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Using webm for better browser support
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         
                         // Send to server
                         const formData = new FormData();
                         formData.append('audio', audioBlob, 'temp_discussion.webm');
                         
                         try {
-                            const response = await fetch('/save-recording', {
+                            // First save the recording
+                            const saveResponse = await fetch('/save-recording', {
                                 method: 'POST',
                                 body: formData
                             });
                             
-                            if (!response.ok) throw new Error('Failed to save recording');
+                            if (!saveResponse.ok) throw new Error('Failed to save recording');
                             
-                            const result = await response.json();
+                            // Then process the audio
+                            const processResponse = await fetch('/process-audio', {
+                                method: 'POST'
+                            });
+                            
+                            if (!processResponse.ok) throw new Error('Failed to process audio');
+                            
+                            const result = await processResponse.json();
+                            
                             if (result.status === 'success') {
-                                alert('Recording saved successfully!');
+                                // Add the AI response to chat
+                                addMessage(result.answer, 'ai');
                             } else {
-                                throw new Error(result.message || 'Failed to save recording');
+                                throw new Error(result.message || 'Audio processing failed');
                             }
                         } catch (error) {
-                            console.error('Error saving recording:', error);
-                            alert('Error saving recording: ' + error.message);
+                            console.error('Error:', error);
+                            addMessage("Sorry, I couldn't process your audio question. Please try typing instead.", 'ai');
                         }
                     };
                     
@@ -780,6 +834,29 @@
                 status.textContent = "Ready";
             }, 2000);
         }
+
+        // Test functions 
+        // function testMarkdownRendering() {
+        //     const testContent = `
+        //     # Test de formatage
+
+        //     **Exemple en gras** et *en italique*
+
+        //     Liste :
+        //     - Item 1
+        //     - Item 2
+
+        //     Code :
+        //     \`\`\`python
+        //     def exemple():
+        //         return "Fonction test"
+        //     \`\`\`
+
+        //     > Citation importante
+        //     `;
+
+        //     addMessage(testContent, 'ai');
+        // }
     </script>
 </body>
 </html>

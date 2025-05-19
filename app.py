@@ -1,11 +1,10 @@
 from flask import Flask, render_template, send_from_directory, request, jsonify, send_file
-import pyttsx3
 import io
 import os
-from datetime import datetime
+from pathlib import Path
 from google.cloud import texttospeech
 from google.cloud import translate_v2 as translate
-from werkzeug.utils import secure_filename
+import openai
 
 
 
@@ -18,6 +17,104 @@ ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+def ask_question_with_audio(audio_path, dev_note=""):
+    """Transcribe audio and get answer from OpenAI"""
+    try:
+        # Load your API key
+        with open(r'C:\Users\remip\Clé\openai_albertschool.txt', 'r') as f:
+            api_key = f.read().strip()
+        
+        client = openai.OpenAI(api_key=api_key)
+        
+        # 1. Transcribe the audio question
+        with open(audio_path, 'rb') as audio_file:
+            transcription = client.audio.transcriptions.create(
+                file=audio_file,
+                model="whisper-1",
+                prompt=dev_note,
+                response_format="text"
+            )
+
+        # 2. Get answer from ChatGPT
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": f"""
+        DEV NOTE: En te basant sur la transcription de la discussion :
+
+        Pour chaque catégorie, liste toutes les valeurs possibles parmi les choix suivants, ou indique "non précisé" si aucune information :
+
+        1. Genre : femmes et hommes / femmes / hommes
+        2. Âge : enfants / adultes / seniors
+        3. Publics spécifiques : addiction / handicap / VIH / LGBT+ / sortants de prison / prostitution / étudiants / déplacés d'Ukraine / victimes de violence
+        4. Langues : liste des langues mentionnées
+        5. Situation administrative : tous / demandeurs d'asile / réfugiés / en situation régulière / sans-papiers
+        6. Situation familiale : tous / couples / familles / isolés / femmes enceintes
+        7. Accessibilité mobilité réduite : oui / non
+        8. Animaux acceptés : oui / non
+
+        Format de réponse (exemple) :
+        Genre : femmes, hommes
+        Âge : adultes
+        Publics spécifiques : étudiants, LGBT+
+        Langues : français, anglais
+        ...
+
+        Répond uniquement sous forme de liste compacte, sans phrases supplémentaires.
+        """},
+                {"role": "user", "content": transcription}
+            ]
+        )
+        
+        return {
+            "question": transcription,  # We won't use this but keeping it for debugging
+            "answer": response.choices[0].message.content
+        }
+
+    except Exception as e:
+        print(f"Error in audio processing: {str(e)}")
+        return None
+
+
+def ask_question(user_prompt):
+    try:
+        # Load your API key
+        with open(r'C:\Users\remip\Clé\openai_albertschool.txt', 'r') as f:
+            api_key = f.read().strip()
+        
+        client = openai.OpenAI(api_key=api_key)
+
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": f"""Tu es un assistant IA qui aide un bénévole de la Croix-Rouge française lors d’un entretien AEO (Accueil–Écoute–Orientation). Son rôle est de poser des questions ouvertes pour recueillir des informations sur les besoins et la situation de la personne. Ta réponse doit être concise, claire et fondée sur des faits. Tu dois te concentrer sur les besoins de la personne et éviter de donner des conseils ou des opinions personnelles mais tout en restant compatissant et sympathique. Si tu y as accès, base-toi sur le "Guide d’entretien Accueil-Écoute-Orientation", ainsi que sur le "RÉFÉRENTIEL D’ACTIVITÉ Permanence Accueil-Écoute-Orientation(PAEO)", et surtout sur le guidez technique de la croix rouge sur "L’ACCÈS AUX DROITS ET AUX SERVICES ACCOMPAGNER ET ORIENTER" et enfin également avec solinum/soliguide. Donne ta réponse en format markdown. Réponds à la question dans la langue utilisée dans la question. Si la question est en français, réponds en français. Si elle est en anglais, réponds en anglais. Si elle est dans une autre langue, réponds dans cette langue. Si tu ne comprends pas la question, dis simplement "Je ne comprends pas". Ne donne pas d'explications supplémentaires.
+                Formatage des réponses attendu :
+                # Titres
+                ## Sous-titres
+                **Texte important** en gras  
+                *Texte secondaire* en italique
+
+                Listes :
+                - Élément 1
+                - Élément 2
+                - Sous-élément
+
+                Blocs de code :
+                ```python
+                print("Exemple pour les procédures")
+                """},
+                {"role": "user", "content": user_prompt}
+            ]
+        )
+        
+        return {
+            "question": user_prompt,
+            "answer": response.choices[0].message.content
+        }
+    
+    except Exception as e:
+        print(f"Error in audio processing: {str(e)}")
+        return None
 
 @app.route('/')
 def index():
@@ -149,7 +246,56 @@ def save_recording():
     
     return jsonify({'status': 'error', 'message': 'Invalid file type'}), 400
 
+@app.route('/process-audio', methods=['POST'])
+def process_audio():
+    try:
+        audio_path = os.path.join(app.config['UPLOAD_FOLDER'], 'temp_discussion.webm')
+        
+        if not os.path.exists(audio_path):
+            return jsonify({'status': 'error', 'message': 'No audio file found'}), 400
+            
+        # Process the audio with your dev notes
+        dev_notes = "DEV NOTE: This is for the French Red Cross. Provide clear, concise answers."
+        result = ask_question_with_audio(audio_path, dev_notes)
+        
+        if not result:
+            return jsonify({'status': 'error', 'message': 'Failed to process audio'}), 500
+            
+        return jsonify({
+            'status': 'success',
+            'answer': result['answer']
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+    
+@app.route('/ask-question', methods=['POST'])
+def handle_question():
+    try:
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({'status': 'error', 'message': 'No question provided'}), 400
+
+        user_prompt = data['message']
+        result = ask_question(user_prompt)
+        
+        if not result:
+            return jsonify({'status': 'error', 'message': 'Failed to process question'}), 500
+            
+        return jsonify({
+            'status': 'success',
+            'answer': result['answer']
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
 if __name__ == '__main__':
     # app.run(debug=True)
     app.run(host='127.0.0.1', port=5000, debug=True)
-    # app.run(host='172.16.29.223', port=5000, debug=True)
