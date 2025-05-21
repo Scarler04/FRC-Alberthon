@@ -14,7 +14,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Users\remip\Clé\stately-diagram-460009-k6-e85f360cb898.json"
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"C:\Your\Path\Here\*.json"
 UPLOAD_FOLDER = r'templates\audio-temp'
 ALLOWED_EXTENSIONS = {'webm', 'mp3', 'wav'}
 
